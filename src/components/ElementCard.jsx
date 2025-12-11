@@ -15,13 +15,27 @@ export function ElementCard({ element, id, isOverlay = false }) {
     data: { element, source: id.startsWith('sidebar') ? 'sidebar' : 'board' },
   });
 
+  // Determine drag style based on source
+  const isSidebar = id.startsWith('sidebar');
+  
   const style = {
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
+    // If dragging from sidebar: keep original in place (no transform), fully visible
+    // If dragging from board: hide original (opacity 0), no transform (Overlay handles visual)
+    // We typically don't apply transform to the source if using Overlay for movement.
+    // However, dnd-kit useDraggable usually tracks position via transform.
+    // If we want the element to "follow" the mouse without Overlay, we use transform.
+    // But since we use DragOverlay, we disable transform on the source element.
+    transform: isSidebar ? undefined : (isDragging ? undefined : CSS.Translate.toString(transform)),
+    
+    // Actually, for board items, if we don't apply transform, it stays at original x,y.
+    // If we apply transform, it moves.
+    // We want it to "disappear" from original spot and "appear" as Overlay.
+    opacity: isDragging ? (isSidebar ? 0.7 : 0) : 1, // Dim sidebar item slightly to show it's being used?
+    
     cursor: isDragging ? 'grabbing' : 'grab',
     zIndex: isDragging ? 999 : 'auto',
-    // If it's an overlay (drag preview), we don't use transform from dnd-kit hooks logic relative to parent, 
-    // but the DragOverlay handles positioning.
+    // Touch action is important for touch devices
+    touchAction: 'none',
   };
   
   if (isOverlay) {

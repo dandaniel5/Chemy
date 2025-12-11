@@ -106,15 +106,21 @@ export default function Game({ elements, recipes, discovered, onDiscover }) {
              setInstances(prev => [...prev.filter(i => i.instanceId !== targetInstanceId && i.instanceId !== sourceInstanceId), newInst]);
         }
     } else {
-        // No match.
-        // If it was a Move (Board->Board), we might want to just move it close? 
-        // For now, if we drop on another element and it doesn't mix, it effectively "snaps" or overlaps. 
-        // We defined "Move" logic above for 'game-board' drop. If drop is on element, we treat as mix attempt.
-        // If fail, do nothing? (so source stays where it was? or moves to overlap?)
-        // If source was sidebar, nothing happens (item not created).
-        // If source was board, it stays at original position? Or moves?
-        // Let's fallback to "Move" if mix fails for Board items.
+        // No match (Mix Failed) -> Fallback to "Place/Move"
         
+        // If source is Sidebar, create new instance at drop location (maybe offset slightly)
+        if (!sourceInstanceId) {
+             const newInst = {
+                instanceId: `inst-${Date.now()}`,
+                elementId: elemId1, // The dragged element
+                x: x + 20, 
+                y: y + 20
+             };
+             // We need to add to instances. Note: We didn't remove anything yet because it was sidebar source.
+             setInstances(prev => [...prev, newInst]);
+        }
+        
+        // If source is Board, move it to drop location
         if (sourceInstanceId) {
              setInstances(prev => prev.map(inst => {
                 if (inst.instanceId === sourceInstanceId) {
