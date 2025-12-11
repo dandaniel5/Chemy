@@ -1,35 +1,61 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import Game from './components/Game';
+import Editor from './components/Editor';
+import { defaultElements, defaultRecipes } from './data/initialData';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [mode, setMode] = useState('play'); // 'play' | 'edit'
+  const [elements, setElements] = useState(defaultElements);
+  const [recipes, setRecipes] = useState(defaultRecipes);
+  const [discovered, setDiscovered] = useState(['fire', 'water', 'earth', 'air', 'energy']); // Starters
+
+  const handleDiscover = (id) => {
+    if (!discovered.includes(id)) {
+      setDiscovered([...discovered, id]);
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="app-container">
+      <header className="header">
+        <h1 style={{margin:0, display:'flex', alignItems:'center', gap:'10px'}}>
+          <span>⚗️</span> Chemy
+        </h1>
+        <div style={{display:'flex', gap:'10px'}}>
+          <button 
+             onClick={() => setMode('play')} 
+             style={{backgroundColor: mode === 'play' ? '#646cff' : '#1a1a1a'}}
+          >
+            Play
+          </button>
+          <button 
+             onClick={() => setMode('edit')}
+             style={{backgroundColor: mode === 'edit' ? '#646cff' : '#1a1a1a'}}
+          >
+            Editor
+          </button>
+        </div>
+      </header>
+
+      <div className="main-content">
+        {mode === 'play' ? (
+          <Game 
+            elements={elements} 
+            recipes={recipes} 
+            discovered={discovered} 
+            onDiscover={handleDiscover}
+          />
+        ) : (
+          <Editor 
+            elements={elements} 
+            setElements={setElements} 
+            recipes={recipes} 
+            setRecipes={setRecipes}
+          />
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
