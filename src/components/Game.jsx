@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { DndContext, useDroppable, DragOverlay, pointerWithin } from '@dnd-kit/core';
+import { DndContext, useDroppable, DragOverlay, pointerWithin, useSensor, useSensors, MouseSensor, TouchSensor } from '@dnd-kit/core';
 import { ElementCard } from './ElementCard';
 
 export default function Game({ elements, recipes, discovered, onDiscover }) {
@@ -13,9 +13,28 @@ export default function Game({ elements, recipes, discovered, onDiscover }) {
     id: 'game-board',
   });
 
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
+      },
+    })
+  );
+
   const handleDragStart = (event) => {
+    // console.log('Drag Start', event);
     setActiveId(event.active.id);
-    setActiveElement(event.active.data.current.element);
+    if (event.active.data.current && event.active.data.current.element) {
+        setActiveElement(event.active.data.current.element);
+    } else {
+        console.warn("Drag started but no element data found!", event.active);
+    }
   };
 
   const handleDragEnd = (event) => {
@@ -133,7 +152,7 @@ export default function Game({ elements, recipes, discovered, onDiscover }) {
   };
 
   return (
-    <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>
+    <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={pointerWithin}>
        {/* Sidebar is outside? Or passed in children? 
            The Sidebar needs to be inside DndContext.
            So Game component should probably wrap everything including sidebar.
